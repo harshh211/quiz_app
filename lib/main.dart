@@ -1,30 +1,25 @@
 import 'package:flutter/material.dart';
 import 'app_config.dart';
-import 'services/trivia_service.dart';
+import 'screens/quiz_screen.dart';
 
-void main() async {
-  // Required when using async code before runApp.
-  WidgetsFlutterBinding.ensureInitialized();
-
+void main() {
   AppConfig.validate();
+  runApp(const QuizApp());
+}
 
-  // TEMPORARY: fetch and print questions to verify the API works.
-  try {
-    final questions = await TriviaService.fetchQuestions(
-      apiKey: AppConfig.quizApiKey,
-      limit: 3,
+class QuizApp extends StatelessWidget {
+  const QuizApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Quiz App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: Colors.teal,
+        useMaterial3: true,
+      ),
+      home: const QuizScreen(),
     );
-    for (final q in questions) {
-      print('Q: ${q.question}');
-      print('   Correct: ${q.correctAnswer}');
-      print('   Options: ${q.answers}');
-      print('');
-    }
-  } catch (e) {
-    print('ERROR: $e');
   }
-
-  runApp(const MaterialApp(
-    home: Scaffold(body: Center(child: Text('Check console'))),
-  ));
 }

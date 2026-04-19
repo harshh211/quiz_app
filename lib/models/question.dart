@@ -1,3 +1,8 @@
+import 'package:html_unescape/html_unescape.dart';
+
+// Shared instance — HtmlUnescape has no state so one is fine.
+final _unescape = HtmlUnescape();
+
 class Question {
   final String id;
   final String question;
@@ -15,7 +20,6 @@ class Question {
     required this.category,
   });
 
-  
   factory Question.fromJson(Map<String, dynamic> json) {
     final rawAnswers = (json['answers'] as List? ?? [])
         .whereType<Map<String, dynamic>>()
@@ -29,9 +33,11 @@ class Question {
 
     return Question(
       id: (json['id'] ?? '').toString(),
-      question: (json['text'] ?? '').toString(),
-      answers: rawAnswers.map((a) => a['text'].toString()).toList(),
-      correctAnswer: (correct['text'] ?? '').toString(),
+      question: _unescape.convert((json['text'] ?? '').toString()),
+      answers: rawAnswers
+          .map((a) => _unescape.convert(a['text'].toString()))
+          .toList(),
+      correctAnswer: _unescape.convert((correct['text'] ?? '').toString()),
       difficulty: (json['difficulty'] ?? '').toString(),
       category: (json['category'] ?? '').toString(),
     );

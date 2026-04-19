@@ -66,14 +66,35 @@ class _QuizScreenState extends State<QuizScreen> {
 
   // ---- Answer handling ----
   void _onAnswerTap(String answer) {
-    if (_answered) return; // ignore taps after answering
+    if (_answered) return;
 
     final correct = _questions[_currentIndex].correctAnswer;
+    final isCorrect = answer == correct;
+
     setState(() {
       _selectedAnswer = answer;
       _answered = true;
-      if (answer == correct) _score++;
+      if (isCorrect) _score++;
     });
+
+    // Show a floating SnackBar with feedback.
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            isCorrect ? 'Correct!' : 'Wrong. Correct answer: $correct',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor:
+              isCorrect ? Colors.green.shade700 : Colors.red.shade700,
+          duration: const Duration(milliseconds: 1200),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
 
     // Auto-advance after 1.5 seconds.
     Future.delayed(const Duration(milliseconds: 1500), _nextQuestion);
@@ -102,13 +123,22 @@ class _QuizScreenState extends State<QuizScreen> {
     });
   }
 
-  // ---- Button colors based on answered state ----
+  // ---- Button color based on answered state ----
   Color _buttonColor(String option) {
     if (!_answered) return Colors.white;
     final correct = _questions[_currentIndex].correctAnswer;
     if (option == correct) return Colors.green.shade100;
     if (option == _selectedAnswer) return Colors.red.shade100;
     return Colors.grey.shade100;
+  }
+
+  /// Border color mirrors the fill color for a cleaner answered state.
+  Color _buttonBorderColor(String option) {
+    if (!_answered) return Colors.grey.shade300;
+    final correct = _questions[_currentIndex].correctAnswer;
+    if (option == correct) return Colors.green.shade400;
+    if (option == _selectedAnswer) return Colors.red.shade400;
+    return Colors.grey.shade300;
   }
 
   // ---- Build method ----
@@ -163,7 +193,10 @@ class _QuizScreenState extends State<QuizScreen> {
             child: Center(
               child: Text(
                 'Score: $_score',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -183,32 +216,88 @@ class _QuizScreenState extends State<QuizScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Category and difficulty chips
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      Chip(
+                        label: Text(
+                          question.category,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        backgroundColor: Colors.teal.shade50,
+                      ),
+                      Chip(
+                        label: Text(
+                          question.difficulty.toUpperCase(),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        backgroundColor: Colors.orange.shade50,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Question text
                   Text(
                     question.question,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  ..._shuffledAnswers.map((option) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: ElevatedButton(
-                          onPressed: () => _onAnswerTap(option),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _buttonColor(option),
-                            foregroundColor: Colors.black87,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                  // Answer buttons
+                  ..._shuffledAnswers.map((option) {
+                    final correct =
+                        _questions[_currentIndex].correctAnswer;
+                    final showCheck = _answered && option == correct;
+                    final showCross = _answered &&
+                        option == _selectedAnswer &&
+                        option != correct;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ElevatedButton(
+                        onPressed: () => _onAnswerTap(option),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _buttonColor(option),
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: _buttonBorderColor(option),
+                              width: 1.5,
                             ),
                           ),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              option,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
+                          elevation: 0,
                         ),
-                      )),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                option,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            if (showCheck)
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              ),
+                            if (showCross)
+                              const Icon(
+                                Icons.cancel,
+                                color: Colors.red,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),

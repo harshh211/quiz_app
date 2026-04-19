@@ -122,7 +122,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _prepareQuestion();
     });
   }
-
+//--//
   // ---- Button color based on answered state ----
   Color _buttonColor(String option) {
     if (!_answered) return Colors.white;

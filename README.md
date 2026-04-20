@@ -54,7 +54,7 @@ The `--dart-define` flag passes the key at compile time without storing it in so
 ### 4. Build a release APK
 
 ```bash
-flutter build apk --release --dart-define=QUIZ_API_KEY=qa_sk_db90bfcadb4b9cf6865a6b91d0f8f711ba7d97fd
+flutter build apk --release --dart-define=QUIZ_API_KEY=API_KEY
 ```
 
 The APK is written to `build/app/outputs/flutter-apk/app-release.apk`.
